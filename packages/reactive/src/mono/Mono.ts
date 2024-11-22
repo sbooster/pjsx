@@ -209,7 +209,7 @@ export default class Mono<T> {
      * Оператор zipWith: комбинирует текущее значение с другим Mono.
      * Создает Mono, который эмитирует результат комбинации значений из текущего и другого Mono.
      */
-    public zipWitn<T2, R>(
+    public zipWith<T2, R>(
         other: Mono<T2>, // Функция, которая для каждого значения из Mono возвращает новый Mono
         combiner: (value1: T, value2: T2) => R // Функция комбинирования значений из двух Mono
     ): Mono<R> {
