@@ -2,26 +2,21 @@
   "name": "reactive",
   "type": "module",
   "version": "0.0.0",
-  "description": "> TODO: description",
-  "author": "CKATEPTb <ckateptb@vivaldi.net>",
-  "homepage": "",
-  "license": "ISC",
   "main": "src/index.ts",
-  "directories": {
-    "lib": "src",
-    "test": "test"
-  },
-  "files": [
-    "src"
-  ],
   "scripts": {
-    "build": "tsc",
-    "test": "tsx test/index.test.ts",
-    "dev": "tsx watch ./src/index.ts"
+    "dev": "tsx watch ./src/index.ts",
+    "build": "npm run clean && vite build",
+    "clean": "rimraf ./dist"
   },
   "devDependencies": {
     "@types/node": "22.9.1",
-    "tsx": "4.19.2",
-    "typescript": "5.6.3"
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-dts": "^4.3.0"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
   }
 }
