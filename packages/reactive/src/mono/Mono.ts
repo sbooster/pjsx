@@ -1,12 +1,14 @@
 import Sink from "@/sink/Sink";
 import Subscriber from "@/pubsub/Subscriber";
 import Sinks from "@/sink/Sinks";
+import Publisher from "@/pubsub/Publisher";
+import Subscription from "@/pubsub/Subscription";
 
 /**
  * Класс Mono<T> представляет асинхронный поток данных, содержащий одно значение,
  * ошибку или ничего (пустой поток). Поддерживает ленивую и немедленную обработку.
  */
-export default class Mono<T> {
+export default class Mono<T> implements Publisher<T> {
     private readonly sink: Sink<T>; // Управляет эмитами данных (onNext, onError, onComplete)
     private readonly producer: ((sink: Sink<T>) => void) | null; // Производитель данных (ленивый или немедленный)
 
@@ -47,6 +49,23 @@ export default class Mono<T> {
     }
 
     /**
+     * Создает Mono из Promise.
+     * @param promise - Promise, который будет преобразован в Mono.
+     * @returns Новый экземпляр Mono.
+     */
+    public static fromPromise<T>(promise: Promise<T>): Mono<T> {
+        return new Mono<T>(Sinks.one(), (sink) => {
+            promise
+                .then((value) => {
+                    sink.emitNext(value);
+                })
+                .catch((error) => {
+                    sink.emitError(error);
+                });
+        });
+    }
+
+    /**
      * Создает ленивый Mono, производящий данные при подписке.
      * @param producer - Функция, возвращающая Mono.
      * @returns Новый экземпляр Mono.
@@ -57,7 +76,6 @@ export default class Mono<T> {
                 let mono = producer();
                 let emitted = false;
                 mono.subscribe({
-                    onSubscribe: (subscription) => subscription.request(1),
                     onNext: (value) => {
                         emitted = true;
                         sink.emitNext(value)
@@ -69,7 +87,7 @@ export default class Mono<T> {
                     onComplete: () => {
                         if (!emitted) /*mono.*/sink.emitComplete()
                     },
-                });
+                }).request(1);
             } catch (exception) {
                 sink.emitError(exception)
             }
@@ -85,7 +103,6 @@ export default class Mono<T> {
         return new Mono<U>(Sinks.one(), (sink) => {
             let emitted = false;
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => {
                     emitted = true;
                     try {
@@ -102,7 +119,7 @@ export default class Mono<T> {
                 onComplete: () => {
                     if (!emitted) sink.emitComplete()
                 },
-            });
+            }).request(1);
         });
     }
 
@@ -113,7 +130,6 @@ export default class Mono<T> {
         return new Mono<U>(Sinks.one(), (sink) => {
             let emitted = false;
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => {
                     emitted = true;
                     try {
@@ -131,7 +147,7 @@ export default class Mono<T> {
                 onComplete: () => {
                     if (!emitted) sink.emitComplete()
                 },
-            });
+            }).request(1);
         });
     }
 
@@ -142,14 +158,12 @@ export default class Mono<T> {
         return new Mono<U>(Sinks.one(), (sink) => {
             let emitted = false;
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => {
                     emitted = true;
                     try {
                         let mono = mapper(value);
                         let emitted2 = false;
                         mono.subscribe({
-                            onSubscribe: (innerSubscription) => innerSubscription.request(1),
                             onNext: (innerValue) => {
                                 emitted2 = true;
                                 sink.emitNext(innerValue)
@@ -161,7 +175,7 @@ export default class Mono<T> {
                             onComplete: () => {
                                 if (!emitted2) mono.sink.emitComplete()
                             },
-                        });
+                        }).request(1);
                     } catch (e) {
                         sink.emitError(e)
                     }
@@ -173,7 +187,7 @@ export default class Mono<T> {
                 onComplete: () => {
                     if (!emitted) sink.emitComplete()
                 },
-            });
+            }).request(1);
         });
     }
 
@@ -184,7 +198,6 @@ export default class Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
             let emitted = false
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => {
                     emitted = true
                     try {
@@ -201,7 +214,7 @@ export default class Mono<T> {
                 onComplete: () => {
                     if (!emitted) sink.emitComplete()
                 },
-            });
+            }).request(1);
         });
     }
 
@@ -227,13 +240,11 @@ export default class Mono<T> {
         return new Mono<R>(Sinks.one(), (sink) => {
             let emitted = false;
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (data) => {
                     emitted = true;
                     try {
                         let emitted2 = false;
                         fn(data).subscribe({
-                            onSubscribe: (subscription) => subscription.request(1),
                             onNext: (other) => {
                                 emitted2 = true;
                                 try {
@@ -249,7 +260,7 @@ export default class Mono<T> {
                             onComplete: () => {
                                 if (!emitted2) sink.emitComplete();
                             }
-                        });
+                        }).request(1);
                     } catch (e) {
                         sink.emitError(e)
                         return
@@ -262,7 +273,7 @@ export default class Mono<T> {
                 onComplete: () => {
                     // if (!emitted) sink.emitComplete();
                 }
-            });
+            }).request(1);
         });
     }
 
@@ -288,13 +299,13 @@ export default class Mono<T> {
     }
 
     /**
+     * TODO вызов doFinally лучше не использовать и отдавать предпочтение на onComplete, поскольку doFinally не будет ожидать другой поток.
      * Оператор doFinally: выполняет действие после завершения потока.
      */
     public doFinally(action: () => void): Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
             let emitted = false;
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => {
                     emitted = true;
                     sink.emitNext(value);
@@ -309,7 +320,7 @@ export default class Mono<T> {
                     }
                     action();
                 },
-            });
+            }).request(1);
         });
     }
 
@@ -320,7 +331,6 @@ export default class Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
             let emitted = false;
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => {
                     emitted = true;
                     try {
@@ -337,7 +347,7 @@ export default class Mono<T> {
                 onComplete: () => {
                     if (!emitted) sink.emitComplete()
                 },
-            });
+            }).request(1);
         });
     }
 
@@ -348,7 +358,6 @@ export default class Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
             let emitted = false;
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => {
                     emitted = true;
                     sink.emitNext(value);
@@ -360,16 +369,15 @@ export default class Mono<T> {
                 onComplete: () => {
                     if (!emitted) {
                         alternate.subscribe({
-                            onSubscribe: (subscription) => subscription.request(1),
                             onNext: (value) => sink.emitNext(value),
                             onError: (error) => sink.emitError(error),
                             onComplete: () => {
                                 // sink.emitComplete()
                             },
-                        });
+                        }).request(1);
                     }
                 },
-            });
+            }).request(1);
         });
     }
 
@@ -381,7 +389,6 @@ export default class Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
             let emitted = false;
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => {
                     emitted = true;
                     sink.emitNext(value);
@@ -390,7 +397,6 @@ export default class Mono<T> {
                     emitted = true;
                     let emitted2 = false;
                     mono.subscribe({
-                        onSubscribe: (subscription) => subscription.request(1),
                         onNext: (value) => {
                             emitted2 = true;
                             sink.emitNext(value); // Эмитим значение из нового Mono
@@ -402,7 +408,7 @@ export default class Mono<T> {
                         onComplete: () => {
                             if (!emitted2) sink.emitComplete(); // Завершаем поток, если новый Mono завершился
                         },
-                    });
+                    }).request(1);
                 },
                 onComplete: () => {
                     if (!emitted) sink.emitComplete(); // Завершаем поток, если оригинальный Mono завершился
@@ -416,9 +422,19 @@ export default class Mono<T> {
      * Подписывает переданного подписчика на текущий поток данных.
      * @param subscriber - Подписчик, обрабатывающий события потока.
      */
-    public subscribe(subscriber: Subscriber<T>): void {
+    public subscribe(subscriber: ((data: T) => void) | Subscriber<T>): Subscription {
         // Передаем подписчику управление запросом и отменой подписки
-        subscriber.onSubscribe({
+        if (typeof subscriber == "function") {
+            subscriber = {
+                onNext: subscriber,
+                onComplete() {
+                },
+                onError(error: Error) {
+                }
+
+            } as Subscriber<T>
+        }
+        return {
             request: (n: number) => {
                 if (n > 0) { // Добавляем подписчика, если запрос > 0
                     this.sink.addSubscriber(subscriber);
@@ -429,7 +445,7 @@ export default class Mono<T> {
             cancel: () => {
                 this.sink.removeSubscriber(subscriber); // Удаляем подписчика
             },
-        });
+        };
     }
 
     /**
@@ -439,13 +455,12 @@ export default class Mono<T> {
     public toPromise(): Promise<T> {
         return new Promise((resolve, reject) => {
             this.subscribe({
-                onSubscribe: (subscription) => subscription.request(1),
                 onNext: (value) => resolve(value), // Результат передается в resolve
                 onError: (error) => reject(error), // Ошибка передается в reject
                 onComplete: () => {
                     // Поток завершается без действий
                 },
-            });
+            }).request(1);
         });
     }
 }

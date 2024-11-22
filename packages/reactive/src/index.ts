@@ -1,45 +1,39 @@
 import Mono from "@/mono/Mono";
-import Subscription from "@/pubsub/Subscription";
-// Mono.just(1)
-Mono.defer(() => Mono.just(1))
-    .map(value => {
-        console.log(value)
-        return value * 2
-    })
-    .doOnNext(value => console.log('nnn', value))
-    .doFirst(() => console.log('second'))
-    .map(value => {
-        console.log(value)
-        return value * 2
-    })
-    .doFinally(() => console.log('end2'))
-    .map(value => {
-        console.log(value)
-        return value * 2
-    })
-    .doFirst(() => console.log('first'))
-    .doFinally(() => console.log('end1'))
-    .map(value => {
-        console.log('qqq')
-        return value
-    })
-    .filter(value => value == 16)
+import * as console from "node:console";
+
+
+Mono.just(1)
+let subscription = Mono.defer(() => {
+    console.log('Declaring defer')
+    return Mono.just(1)
+})
+    .doOnNext(value => console.log('Init value: ', value))
+    .map(value => value * 2)
+    .doFinally(() => console.log('Last action'))
+    .doOnNext(value => console.log('Mapped value: ', value))
+    .flatMap(value => Mono.just(value * 2))
+    .doOnNext(value => console.log('FlatMapped value: ', value))
+    .filter(value => value % 2 == 0)
+    .doOnNext(value => console.log('Filtered value: ', value))
+    .mapNotNull(value => null)
+    .doFirst(() => console.log('First action'))
+    .doOnNext(value => console.log('Nullable value: ', value))
     .switchIfEmpty(Mono.just(1))
+    .doOnNext(value => console.log("Switched value: ", value))
+    .zipWhen(value => Mono.just(value * 2), (value, other) => `${value}, ${other}`)
+    .zipWith(Mono.fromPromise(new Promise(resolve => setTimeout(() => resolve(10), 1000))), (value1, value2) => `${value1} , ${value2}`)
     .subscribe({
-        onSubscribe(subscription: Subscription) {
-            console.log('request')
-            subscription.request(1)
-        },
-        onNext(data: number) {
-            console.log('next', data)
+        onNext(data: string) {
+            console.log('Result value', data)
         },
         onError(error: Error) {
-            console.log('error', error)
+            console.log('Resolved error', error)
         },
         onComplete() {
-            console.log('complete')
+            console.log('Completed')
         }
-    })
+    });
+subscription.request(1)
 
 export function reactive() {
     return 'Hello from reactive 2';
