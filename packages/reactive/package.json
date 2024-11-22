@@ -1,0 +1,27 @@
+{
+  "name": "reactive",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "CKATEPTb <ckateptb@vivaldi.net>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "src/index.ts",
+  "directories": {
+    "lib": "src",
+    "test": "test"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "tsx test/index.test.ts",
+    "dev": "tsx watch ./src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "22.9.1",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3"
+  }
+}
