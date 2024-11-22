@@ -83,25 +83,26 @@ export default class Mono<T> {
      */
     public map<U>(mapper: (value: T) => U): Mono<U> {
         return new Mono<U>(Sinks.one(), (sink) => {
-            try {
-                let emitted = false;
-                this.subscribe({
-                    onSubscribe: (subscription) => subscription.request(1),
-                    onNext: (value) => {
-                        emitted = true;
-                        sink.emitNext(mapper(value))
-                    },
-                    onError: (error) => {
-                        emitted = true;
-                        sink.emitError(error)
-                    },
-                    onComplete: () => {
-                        if (!emitted) sink.emitComplete()
-                    },
-                });
-            } catch (exception) {
-                sink.emitError(exception)
-            }
+            let emitted = false;
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (value) => {
+                    emitted = true;
+                    try {
+                        let result = mapper(value);
+                        sink.emitNext(result)
+                    } catch (e) {
+                        sink.emitError(e)
+                    }
+                },
+                onError: (error) => {
+                    emitted = true;
+                    sink.emitError(error)
+                },
+                onComplete: () => {
+                    if (!emitted) sink.emitComplete()
+                },
+            });
         });
     }
 
@@ -110,27 +111,27 @@ export default class Mono<T> {
      */
     public mapNotNull<U>(mapper: (value: T) => U | null): Mono<U> {
         return new Mono<U>(Sinks.one(), (sink) => {
-            try {
-                let emitted = false;
-                this.subscribe({
-                    onSubscribe: (subscription) => subscription.request(1),
-                    onNext: (value) => {
-                        emitted = true;
+            let emitted = false;
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (value) => {
+                    emitted = true;
+                    try {
                         const mappedValue = mapper(value);
                         if (mappedValue !== null) sink.emitNext(mappedValue);
                         else sink.emitComplete();
-                    },
-                    onError: (error) => {
-                        emitted = true;
-                        sink.emitError(error)
-                    },
-                    onComplete: () => {
-                        if (!emitted) sink.emitComplete()
-                    },
-                });
-            } catch (exception) {
-                sink.emitError(exception)
-            }
+                    } catch (e) {
+                        sink.emitError(e)
+                    }
+                },
+                onError: (error) => {
+                    emitted = true;
+                    sink.emitError(error)
+                },
+                onComplete: () => {
+                    if (!emitted) sink.emitComplete()
+                },
+            });
         });
     }
 
@@ -139,12 +140,12 @@ export default class Mono<T> {
      */
     public flatMap<U>(mapper: (value: T) => Mono<U>): Mono<U> {
         return new Mono<U>(Sinks.one(), (sink) => {
-            try {
-                let emitted = false;
-                this.subscribe({
-                    onSubscribe: (subscription) => subscription.request(1),
-                    onNext: (value) => {
-                        emitted = true;
+            let emitted = false;
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (value) => {
+                    emitted = true;
+                    try {
                         let mono = mapper(value);
                         let emitted2 = false;
                         mono.subscribe({
@@ -161,18 +162,18 @@ export default class Mono<T> {
                                 if (!emitted2) mono.sink.emitComplete()
                             },
                         });
-                    },
-                    onError: (error) => {
-                        emitted = true;
-                        sink.emitError(error)
-                    },
-                    onComplete: () => {
-                        if (!emitted) sink.emitComplete()
-                    },
-                });
-            } catch (exception) {
-                sink.emitError(exception)
-            }
+                    } catch (e) {
+                        sink.emitError(e)
+                    }
+                },
+                onError: (error) => {
+                    emitted = true;
+                    sink.emitError(error)
+                },
+                onComplete: () => {
+                    if (!emitted) sink.emitComplete()
+                },
+            });
         });
     }
 
@@ -181,26 +182,87 @@ export default class Mono<T> {
      */
     public filter(predicate: (value: T) => boolean): Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
-            try {
-                let emitted = false
-                this.subscribe({
-                    onSubscribe: (subscription) => subscription.request(1),
-                    onNext: (value) => {
-                        emitted = true
+            let emitted = false
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (value) => {
+                    emitted = true
+                    try {
                         if (predicate(value)) sink.emitNext(value);
                         else sink.emitComplete(); // Завершаем, если предикат не выполняется
-                    },
-                    onError: (error) => {
-                        emitted = true;
-                        sink.emitError(error)
-                    },
-                    onComplete: () => {
-                        if (!emitted) sink.emitComplete()
-                    },
-                });
-            } catch (exception) {
-                sink.emitError(exception)
-            }
+                    } catch (exception) {
+                        sink.emitError(exception)
+                    }
+                },
+                onError: (error) => {
+                    emitted = true;
+                    sink.emitError(error)
+                },
+                onComplete: () => {
+                    if (!emitted) sink.emitComplete()
+                },
+            });
+        });
+    }
+
+    /**
+     * Оператор zipWith: комбинирует текущее значение с другим Mono.
+     * Создает Mono, который эмитирует результат комбинации значений из текущего и другого Mono.
+     */
+    public zipWitn<T2, R>(
+        other: Mono<T2>, // Функция, которая для каждого значения из Mono возвращает новый Mono
+        combiner: (value1: T, value2: T2) => R // Функция комбинирования значений из двух Mono
+    ): Mono<R> {
+        return this.zipWhen(value => other, combiner);
+    }
+
+    /**
+     * Оператор zipWhen: комбинирует текущее значение с потоком, созданным функцией, которая принимает текущее значение.
+     * Для каждого значения из текущего Mono создается новый поток, и результат комбинируется.
+     */
+    public zipWhen<T2, R>(
+        fn: (value: T) => Mono<T2>, // Функция, которая для каждого значения из Mono возвращает новый Mono
+        combiner: (value1: T, value2: T2) => R // Функция комбинирования значений из двух Mono
+    ): Mono<R> {
+        return new Mono<R>(Sinks.one(), (sink) => {
+            let emitted = false;
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (data) => {
+                    emitted = true;
+                    try {
+                        let emitted2 = false;
+                        fn(data).subscribe({
+                            onSubscribe: (subscription) => subscription.request(1),
+                            onNext: (other) => {
+                                emitted2 = true;
+                                try {
+                                    sink.emitNext(combiner(data, other)); // Когда оба значения получены
+                                } catch (e) {
+                                    sink.emitError(e)
+                                }
+                            },
+                            onError: (error) => {
+                                emitted2 = true;
+                                sink.emitError(error)
+                            },
+                            onComplete: () => {
+                                if (!emitted2) sink.emitComplete();
+                            }
+                        });
+                    } catch (e) {
+                        sink.emitError(e)
+                        return
+                    }
+                },
+                onError: (error) => {
+                    emitted = true
+                    sink.emitError(error)
+                },
+                onComplete: () => {
+                    // if (!emitted) sink.emitComplete();
+                }
+            });
         });
     }
 
@@ -230,28 +292,24 @@ export default class Mono<T> {
      */
     public doFinally(action: () => void): Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
-            try {
-                let emitted = false;
-                this.subscribe({
-                    onSubscribe: (subscription) => subscription.request(1),
-                    onNext: (value) => {
-                        emitted = true;
-                        sink.emitNext(value)
-                    },
-                    onError: (error) => {
-                        emitted = true;
-                        sink.emitError(error);
-                    },
-                    onComplete: () => {
-                        action(); // не сработает в конце, а сработает сразу если не будет onNext или onError (например если у нас Mono#empty). Исправь!
-                        if (!emitted) {
-                            sink.emitComplete()
-                        }
-                    },
-                });
-            } catch (exception) {
-                sink.emitError(exception)
-            }
+            let emitted = false;
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (value) => {
+                    emitted = true;
+                    sink.emitNext(value);
+                },
+                onError: (error) => {
+                    emitted = true;
+                    sink.emitError(error);
+                },
+                onComplete: () => {
+                    if (!emitted) {
+                        sink.emitComplete();
+                    }
+                    action();
+                },
+            });
         });
     }
 
@@ -260,26 +318,26 @@ export default class Mono<T> {
      */
     public doOnNext(action: (value: T) => void): Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
-            try {
-                let emitted = false;
-                this.subscribe({
-                    onSubscribe: (subscription) => subscription.request(1),
-                    onNext: (value) => {
-                        emitted = true;
+            let emitted = false;
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (value) => {
+                    emitted = true;
+                    try {
                         action(value);
                         sink.emitNext(value);
-                    },
-                    onError: (error) => {
-                        emitted = true;
-                        sink.emitError(error)
-                    },
-                    onComplete: () => {
-                        if (!emitted) sink.emitComplete()
-                    },
-                });
-            } catch (exception) {
-                sink.emitError(exception)
-            }
+                    } catch (exception) {
+                        sink.emitError(exception)
+                    }
+                },
+                onError: (error) => {
+                    emitted = true;
+                    sink.emitError(error)
+                },
+                onComplete: () => {
+                    if (!emitted) sink.emitComplete()
+                },
+            });
         });
     }
 
@@ -288,38 +346,71 @@ export default class Mono<T> {
      */
     public switchIfEmpty(alternate: Mono<T>): Mono<T> {
         return new Mono<T>(Sinks.one(), (sink) => {
-            try {
-                let emitted = false;
-                this.subscribe({
-                    onSubscribe: (subscription) => subscription.request(1),
-                    onNext: (value) => {
-                        emitted = true;
-                        sink.emitNext(value);
-                    },
-                    onError: (error) => {
-                        emitted = true;
-                        sink.emitError(error)
-                    },
-                    onComplete: () => {
-                        if (!emitted) {
-                            alternate.subscribe({
-                                onSubscribe: (subscription) => subscription.request(1),
-                                onNext: (value) => sink.emitNext(value),
-                                onError: (error) => sink.emitError(error),
-                                onComplete: () => {
-                                    // sink.emitComplete()
-                                },
-                            });
-                        }
-                    },
-                });
-            } catch (exception) {
-                sink.emitError(exception)
-            }
+            let emitted = false;
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (value) => {
+                    emitted = true;
+                    sink.emitNext(value);
+                },
+                onError: (error) => {
+                    emitted = true;
+                    sink.emitError(error)
+                },
+                onComplete: () => {
+                    if (!emitted) {
+                        alternate.subscribe({
+                            onSubscribe: (subscription) => subscription.request(1),
+                            onNext: (value) => sink.emitNext(value),
+                            onError: (error) => sink.emitError(error),
+                            onComplete: () => {
+                                // sink.emitComplete()
+                            },
+                        });
+                    }
+                },
+            });
         });
     }
 
-    // todo добавь еще onerrormap
+    /**
+     * Оператор onErrorReturn: возвращает указанное значение в случае ошибки.
+     * Обрабатывает ошибку локально, не передавая её родительскому потоку.
+     */
+    public onErrorReturn(mono: Mono<T>): Mono<T> {
+        return new Mono<T>(Sinks.one(), (sink) => {
+            let emitted = false;
+            this.subscribe({
+                onSubscribe: (subscription) => subscription.request(1),
+                onNext: (value) => {
+                    emitted = true;
+                    sink.emitNext(value);
+                },
+                onError: (error) => {
+                    emitted = true;
+                    let emitted2 = false;
+                    mono.subscribe({
+                        onSubscribe: (subscription) => subscription.request(1),
+                        onNext: (value) => {
+                            emitted2 = true;
+                            sink.emitNext(value); // Эмитим значение из нового Mono
+                        },
+                        onError: (err) => {
+                            emitted2 = true;
+                            sink.emitError(err); // Если ошибка в новом Mono, передаем ошибку дальше
+                        },
+                        onComplete: () => {
+                            if (!emitted2) sink.emitComplete(); // Завершаем поток, если новый Mono завершился
+                        },
+                    });
+                },
+                onComplete: () => {
+                    if (!emitted) sink.emitComplete(); // Завершаем поток, если оригинальный Mono завершился
+                },
+            });
+        });
+    }
+
 
     /**
      * Подписывает переданного подписчика на текущий поток данных.
