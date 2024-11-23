@@ -7,11 +7,8 @@
       "DOM"
     ],
     "strict": true,
-    // Требовать строгие типы
     "strictNullChecks": false,
-    // Undefined и null разные вещи
     "useUnknownInCatchVariables": false,
-    // Чтобы catch был не unknown
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
