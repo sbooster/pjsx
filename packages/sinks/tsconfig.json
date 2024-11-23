@@ -6,9 +6,12 @@
       "ESNext",
       "DOM"
     ],
-    "strict": true, // Требовать строгие типы
-    "strictNullChecks": false, // Undefined и null разные вещи
-    "useUnknownInCatchVariables": false, // Чтобы catch был не unknown
+    "strict": true,
+    // Требовать строгие типы
+    "strictNullChecks": false,
+    // Undefined и null разные вещи
+    "useUnknownInCatchVariables": false,
+    // Чтобы catch был не unknown
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
@@ -35,5 +38,12 @@
     "node_modules",
     "dist"
   ],
-  "references": [{ "path": "./tsconfig.vite.json" }]
+  "references": [
+    {
+      "path": "./tsconfig.vite.json"
+    },
+    {
+      "path": "./tsconfig.jest.json"
+    }
+  ]
 }
