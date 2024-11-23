@@ -1,34 +1,33 @@
-import ManySink from "@/sink/ManySink";
-import Subscriber from "@/pubsub/Subscriber";
+import ManySink from "@/sink/many/ManySink";
+import {Listener, Signal} from "@/listener/Listener";
 
 /**
  * ReplySink — абстрактный класс, наследующий ManySink.
  * Его особенность заключается в том, что он хранит историю эмитированных значений и ошибок,
- * и при добавлении нового подписчика повторяет эту историю для него.
+ * и при добавлении нового слушателя повторяет эту историю для него.
  */
 export abstract class ReplySink<T> extends ManySink<T> {
     protected history: Array<T | Error> = new Array<Error | T>(); // Хранит все эмитированные значения и ошибки.
     /**
-     * Утилитарный метод для эмита значения или ошибки подписчику.
+     * Утилитарный метод для эмита значения или ошибки слушателю.
      * Если значение — ошибка, вызывает `onError`, иначе вызывает `onNext`.
      *
      * @param value Эмитируемое значение или ошибка.
-     * @param subscriber Подписчик, которому отправляется значение или ошибка.
+     * @param listener слушатель, которому отправляется значение или ошибка.
      */
-    protected emitNextOrError(value: T | Error, subscriber: Subscriber<T>) {
-        if (value instanceof Error) subscriber.onError(value)
-        else subscriber.onNext(value)
+    protected emitNextOrError(value: T | Error, listener: Listener<T>) {
+        listener(value instanceof Error ? Signal.ERROR : Signal.DATA, value)
     }
 
     /**
-     * Добавляет подписчика и повторяет для него всю историю эмитированных значений и ошибок.
+     * Добавляет слушателя и повторяет для него всю историю эмитированных значений и ошибок.
      *
-     * @param subscriber Новый подписчик.
+     * @param listener Новый слушатель.
      */
-    public addSubscriber(subscriber: Subscriber<T>) {
-        if (this.isNotCompleted("Subscribe to a completed Sink#many is not supported.")) {
-            this.subscribers.add(subscriber);
-            this.history.forEach(value => this.emitNextOrError(value, subscriber));
+    public addListener(listener: Listener<T>) {
+        if (this.isNotClosed("Listen a closed Sink#many is not supported.")) {
+            this.listeners.add(listener);
+            this.history.forEach(value => this.emitNextOrError(value, listener));
         }
     }
 }
@@ -38,26 +37,26 @@ export abstract class ReplySink<T> extends ManySink<T> {
  */
 export class ReplyAllSink<T> extends ReplySink<T> {
     /**
-     * Эмитирует значение всем подписчикам и сохраняет его в истории.
+     * Эмитирует значение всем слушателям и сохраняет его в истории.
      *
      * @param value Эмитируемое значение.
      */
-    public emitNext(value: T) {
-        if (this.isNotCompleted("Emit to a completed Sink#many is not supported.")) {
+    public emitData(value: T) {
+        if (this.isNotClosed("Emit to a closed Sink#many is not supported.")) {
             this.history.push(value)
-            this.subscribers.forEach(subscriber => subscriber.onNext(value))
+            this.listeners.forEach(listener => listener(Signal.DATA, value))
         }
     }
 
     /**
-     * Эмитирует ошибку всем подписчикам и сохраняет её в истории.
+     * Эмитирует ошибку всем слушателям и сохраняет её в истории.
      *
      * @param error Эмитируемая ошибка.
      */
     public emitError(error: Error) {
-        if (this.isNotCompleted("Emit to a completed Sink#many is not supported.")) {
+        if (this.isNotClosed("Emit to a closed Sink#many is not supported.")) {
             this.history.push(error)
-            this.subscribers.forEach(subscriber => subscriber.onError(error))
+            this.listeners.forEach(listener => listener(Signal.ERROR, error))
         }
     }
 }
@@ -79,7 +78,7 @@ abstract class CountedReplaySink<T> extends ReplySink<T> {
     }
 
     /**
-     * Абстрактный метод для добавления значения или ошибки в историю и эмита подписчикам.
+     * Абстрактный метод для добавления значения или ошибки в историю и эмита слушателям.
      *
      * @param value Эмитируемое значение или ошибка.
      */
@@ -90,7 +89,7 @@ abstract class CountedReplaySink<T> extends ReplySink<T> {
      *
      * @param value Эмитируемое значение.
      */
-    public emitNext(value: T) {
+    public emitData(value: T) {
         this.pushAndEmitNextOrError(value)
     }
 
@@ -114,10 +113,10 @@ export class ReplayLatestSink<T> extends CountedReplaySink<T> {
      * @param value Эмитируемое значение или ошибка.
      */
     protected pushAndEmitNextOrError(value: T | Error) {
-        if (this.isNotCompleted("Emit to a completed Sink#many is not supported.")) {
+        if (this.isNotClosed("Emit to a closed Sink#many is not supported.")) {
             this.history.push(value)
             if (this.history.length > this.count) this.history.shift();
-            this.subscribers.forEach(subscriber => this.emitNextOrError(value, subscriber))
+            this.listeners.forEach(listener => this.emitNextOrError(value, listener))
         }
     }
 }
@@ -132,9 +131,9 @@ export class ReplayLimitSink<T> extends CountedReplaySink<T> {
      * @param value Эмитируемое значение или ошибка.
      */
     protected pushAndEmitNextOrError(value: T | Error) {
-        if (this.isNotCompleted("Emit to a completed Sink#many is not supported.")) {
+        if (this.isNotClosed("Emit to a closed Sink#many is not supported.")) {
             if (this.history.length < this.count) this.history.push(value)
-            this.subscribers.forEach(subscriber => this.emitNextOrError(value, subscriber))
+            this.listeners.forEach(listener => this.emitNextOrError(value, listener))
         }
     }
 }

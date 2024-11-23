@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "strict": true, // Требовать строгие типы
+    "strictNullChecks": false, // Undefined и null разные вещи
+    "useUnknownInCatchVariables": false, // Чтобы catch был не unknown
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "importHelpers": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "references": [{ "path": "./tsconfig.vite.json" }]
+}

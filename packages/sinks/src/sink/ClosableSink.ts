@@ -1,13 +1,13 @@
-import Subscriber from "@/pubsub/Subscriber";
+import {Listener} from "@/listener/Listener";
 import Sink from "@/sink/Sink";
 
 /**
  * Абстрактный класс для реализации Sink, который поддерживает завершение потока.
  * Этот класс предоставляет общую логику для потоков, которые могут быть завершены (или по ошибке, или нормальным завершением).
- * Классы, которые наследуются от CompletableSink, должны реализовывать логику для эмита значений и ошибок.
+ * Классы, которые наследуются от ClosableSink, должны реализовывать логику для эмита значений и ошибок.
  */
-export default abstract class CompletableSink<T> implements Sink<T> {
-    protected completed: boolean = false;   // Флаг, который указывает, завершена ли работа потока (эмитировано значение или ошибка).
+export default abstract class ClosableSink<T> implements Sink<T> {
+    protected closed: boolean = false;   // Флаг, который указывает, завершена ли работа потока (эмитировано значение или ошибка).
 
     /**
      * Проверяет, завершен ли поток. Если завершен, выводит сообщение в консоль и возвращает false.
@@ -18,9 +18,9 @@ export default abstract class CompletableSink<T> implements Sink<T> {
      * @param message Сообщение, которое выводится в консоль, если поток завершен.
      * @returns {boolean} Возвращает true, если поток не завершен, иначе false.
      */
-    protected isNotCompleted(message: string): boolean {
-        if (this.completed) {
-            console.debug(message)
+    protected isNotClosed(message?: string): boolean {
+        if (this.closed) {
+            if(message != null) console.debug(message)
             return false;
         }
         return true;
@@ -32,36 +32,36 @@ export default abstract class CompletableSink<T> implements Sink<T> {
      * После первого эмита или ошибки поток будет завершен.
      * @param value Значение, которое нужно эмитировать.
      */
-    public abstract emitNext(value: T): void;
+    public abstract emitData(value: T): void;
 
     /**
      * Абстрактный метод для эмита ошибки в поток.
      * Каждый конкретный Sink должен реализовать эту логику.
      * После эмита ошибки поток будет завершен.
-     * @param error Ошибка, которая будет передана подписчику.
+     * @param error Ошибка, которая будет передана слушателю.
      */
     public abstract emitError(error: Error): void;
 
     /**
      * Абстрактный метод для завершения потока без эмита значения.
      * Каждый конкретный Sink должен реализовать эту логику.
-     * Поток завершится, и подписчики получат уведомление о завершении.
+     * Поток завершится, и слушатели получат уведомление о завершении.
      */
-    public abstract emitComplete(): void;
+    public abstract emitClose(): void;
 
     /**
-     * Абстрактный метод для добавления подписчика.
-     * Каждый конкретный Sink должен реализовать логику для добавления подписчиков.
-     * Подписчики будут получать эмитированные значения или ошибки.
-     * @param subscriber Подписчик, который будет подписан на поток.
+     * Абстрактный метод для добавления слушателя.
+     * Каждый конкретный Sink должен реализовать логику для добавления слушателей.
+     * Слушатели будут получать эмитированные значения или ошибки.
+     * @param listener слушатель, который будет слушать поток.
      */
-    public abstract addSubscriber(subscriber: Subscriber<T>): void;
+    public abstract addListener(listener: Listener<T>): void;
 
     /**
-     * Абстрактный метод для удаления подписчика.
-     * Каждый конкретный Sink должен реализовать логику для удаления подписчиков.
-     * Этот метод может быть полезен в потоках, где есть несколько подписчиков, и нужно поддерживать возможность отписки.
-     * @param subscriber Подписчик, который будет удален из потока.
+     * Абстрактный метод для удаления слушателей.
+     * Каждый конкретный Sink должен реализовать логику для удаления слушателей.
+     * Этот метод может быть полезен в потоках, где есть несколько слушателей, и нужно поддерживать возможность отписки.
+     * @param listener слушатель, который будет удален из потока.
      */
-    public abstract removeSubscriber(subscriber: Subscriber<T>): void;
+    public abstract removeListener(listener: Listener<T>): void;
 }
