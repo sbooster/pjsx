@@ -16,12 +16,12 @@ export default defineConfig({
         lib: {
             entry: entry,
             name: name,
-            fileName: () => `${name.toLowerCase()}.js`,
+            fileName: () => 'index.js',
             formats: ['es'],
         },
         rollupOptions: {
             input: entry,
-            external: ['tslib'],
+            external: ['tslib', 'sinks', 'schedulers'],
         },
         sourcemap: true,
     },
