@@ -16,7 +16,8 @@ export default defineConfig({
         lib: {
             entry: entry,
             name: name,
-            fileName: () => `${name.toLowerCase()}.js`,
+            // fileName: () => `${name.toLowerCase()}.js`,
+            fileName: () => 'index.js',
             formats: ['es'],
         },
         rollupOptions: {

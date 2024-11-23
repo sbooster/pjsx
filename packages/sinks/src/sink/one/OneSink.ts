@@ -16,7 +16,7 @@ export default class OneSink<T> extends ClosableSink<T> {
     public emitData(value: T): void {
         if (this.isNotClosed("Multiple emits are not supported by Sinks#one")) {
             this.listener?.(Signal.DATA, value)
-            this.listener?.(Signal.CLOSE)
+            this.emitClose();
         }
     }
 
@@ -28,7 +28,7 @@ export default class OneSink<T> extends ClosableSink<T> {
     public emitError(error: Error): void {
         if (this.isNotClosed("Multiple emits are not supported by Sinks#one")) {
             this.listener?.(Signal.ERROR, error)
-            this.listener?.(Signal.CLOSE)
+            this.emitClose();
         }
     }
 

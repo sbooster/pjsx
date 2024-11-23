@@ -4,6 +4,9 @@ import ManySink from "@/sink/many/ManySink";
 import {ReplayLatestSink, ReplayLimitSink, ReplyAllSink} from "@/sink/many/reply/ReplySink";
 import UnicastSink from "@/sink/many/unicast/UnicastSink";
 
+export type {default as Sink} from "@/sink/Sink";
+export {Signal} from "@/listener/Listener";
+
 /**
  * Этот модуль предоставляет фабрику для создания различных типов Sinks:
  * - `one` — для единственного эмита.

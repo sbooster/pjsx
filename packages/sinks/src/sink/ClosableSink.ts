@@ -15,12 +15,12 @@ export default abstract class ClosableSink<T> implements Sink<T> {
      *
      * Это вспомогательный метод, который используется перед эмитом значения или ошибки,
      * чтобы убедиться, что поток не был завершен.
-     * @param message Сообщение, которое выводится в консоль, если поток завершен.
+     * @param message Сообщение, которое выводится в ошибку, если поток завершен.
      * @returns {boolean} Возвращает true, если поток не завершен, иначе false.
      */
     protected isNotClosed(message?: string): boolean {
         if (this.closed) {
-            if(message != null) console.debug(message)
+            if(message != null) throw new Error(message)
             return false;
         }
         return true;
