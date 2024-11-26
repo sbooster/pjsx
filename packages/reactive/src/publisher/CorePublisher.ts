@@ -43,7 +43,7 @@ export default abstract class CorePublisher<T> implements Publisher<T> {
      * @returns Объект подписки с методами для запроса данных и отмены подписки.
      */
     public subscribe(subscriber?: ((data: T) => void) | Subscriber<T>): Subscription | void {
-        const sub = this.adaptSubscriber(subscriber || (() => {
+        const sub = CorePublisher.adaptSubscriber(subscriber || (() => {
         }));
         this.sink.addListener(sub)
         return {
@@ -64,16 +64,8 @@ export default abstract class CorePublisher<T> implements Publisher<T> {
      *
      * @returns Listener, который может быть передан в Sink для обработки событий.
      */
-    protected adaptSubscriber(subscriber: ((data: T) => void) | Subscriber<T>): Listener<T> {
-        if (typeof subscriber == "function") subscriber = {
-            onNext: subscriber,
-            onComplete() {
-                // TODO default complete handler
-            },
-            onError(error: Error) {
-                // TODO default error handler
-            }
-        } as Subscriber<T>
+    protected static adaptSubscriber<T>(subscriber: ((data: T) => void) | Subscriber<T>): Listener<T> {
+        subscriber = CorePublisher.normalizeSubscriber(subscriber)
         return (signal, data) => {
             switch (signal) {
                 case Signal.DATA: {
@@ -90,5 +82,20 @@ export default abstract class CorePublisher<T> implements Publisher<T> {
                 }
             }
         }
+    }
+
+    protected static normalizeSubscriber<T>(subscriber: ((data: T) => void) | Subscriber<T>): Subscriber<T> {
+        if (typeof subscriber == "function") {
+            return {
+                onNext: subscriber,
+                onComplete() {
+                    // TODO default complete handler
+                },
+                onError(error: Error) {
+                    // TODO default error handler
+                }
+            } as Subscriber<T>
+        }
+        return subscriber
     }
 }

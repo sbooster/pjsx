@@ -20,6 +20,16 @@ export default class Mono<T> extends CorePublisher<T> {
     }
 
     /**
+     * Создаёт Mono, который сразу эмиттирует переданное значение если то существует
+     * В противном случае вернет пустой Mono
+     *
+     * @param value - Значение, которое будет отправлено через поток.
+     */
+    public static justOrEmpty<T>(value: T): Mono<T> {
+        return value == null ? Mono.empty() : new Mono((sink) => sink.emitData(value));
+    }
+
+    /**
      * Создаёт Mono, который эмиттирует ошибку.
      *
      * @param error - Ошибка, которая будет отправлена в поток.
@@ -213,6 +223,15 @@ export default class Mono<T> extends CorePublisher<T> {
     }
 
     /**
+     * Проверяет, существует ли хотя бы один элемент в потоке.
+     * Возвращает Mono, который эмиттирует true, если хотя бы один элемент был эмиттирован,
+     * или false, если поток пустой.
+     */
+    public hasElement(): Mono<boolean> {
+        return this.map(() => true).switchIfEmpty(Mono.just(false));
+    }
+
+    /**
      * Оператор для возврата альтернативного потока в случае ошибки.
      *
      * @param alternate - Альтернативный Mono для обработки ошибок.
@@ -221,6 +240,10 @@ export default class Mono<T> extends CorePublisher<T> {
         return this.fullyStep(null, (sink, error) => {
             alternate.step((other, data) => other.emitData(data), sink).subscribe()
         }, null)
+    }
+
+    public onErrorContinue(): Mono<T> {
+        return this.onErrorReturn(Mono.empty())
     }
 
     /**
