@@ -1,11 +1,16 @@
 import CorePublisher from "@/publisher/CorePublisher";
-import Sinks, {Signal, Sink} from "sinks";
+import Sinks, {Sink} from "sinks";
 import Subscriber from "@/subscriber/Subscriber";
 import Subscription from "@/subscription/Subscription";
-import {Publisher} from "@/index";
 import Mono from "@/publisher/mono/Mono";
+import Schedulers, {Scheduler} from "schedulers";
+import PipePublisher from "@/publisher/PipePublisher";
+import Publisher from "@/publisher/Publisher";
 
 export default class Flux<T> extends CorePublisher<T> {
+    constructor(producer: (sink: Sink<T>, count: number) => void) {
+        super(producer);
+    }
 
     public static from<T>(sink: Sink<T>): Flux<T> {
         return new Flux<T>((inner) => {
@@ -34,139 +39,57 @@ export default class Flux<T> extends CorePublisher<T> {
 
     public static defer<T>(producer: () => Flux<T>): Flux<T> {
         return new Flux<T>((sink) => {
-            producer().subscribe({
-                onNext(data: T) {
-                    sink.emitData(data)
-                },
-                onError(error: Error) {
-                    sink.emitError(error)
-                },
-                onComplete() {
-                    sink.emitClose()
-                }
-            }).request(Number.MAX_SAFE_INTEGER)
+            producer().pipe(() => {
+                return {}
+            }, sink).subscribe()?.request(Number.MAX_SAFE_INTEGER)
         });
     }
 
-    public pipe<U>(fn: (sink: Sink<U>, count: number) => ((data: T) => void) | Subscriber<T>) {
-        return new Flux<U>((sink, count) => {
-            this.subscribe(CorePublisher.normalizeSubscriber(fn(sink, count))).request(Number.MAX_SAFE_INTEGER)
-        })
+    protected createSink(): Sink<T> {
+        return Sinks.many().unicast();
     }
 
-    public map<U>(mapper: (value: T) => U): Flux<U> {
-        return this.pipe(sink => {
-            return {
-                onNext(data: T) {
-                    sink.emitData(mapper(data))
-                },
-                onError(error: Error) {
-                    sink.emitError(error)
-                },
-                onComplete() {
-                    sink.emitClose()
-                }
-            }
-        })
-    }
-
-    public mapNotNull<U>(mapper: (value: T) => U): Flux<U> {
-        return this.map(mapper).filter(value => value != null)
-    }
-
-    public flatMap<U>(mapper: (value: T) => Publisher<U>): Flux<U> {
-        return this.pipe((sink) => {
-            return {
-                onNext(data: T) {
-                    mapper(data)
-                        .subscribe({
-                            onNext(data: U) {
-                                sink.emitData(data)
-                            },
-                            onError(error: Error) {
-                                sink.emitError(error)
-                            },
-                            onComplete() {
-                                // TODO do nothing
-                            }
-                        })?.request(Number.MAX_SAFE_INTEGER)
-                },
-                onError(error: Error) {
-                    sink.emitError(error)
-                },
-                onComplete() {
-                    sink.emitClose()
-                }
-            }
-        })
+    public cast<U>(): Flux<U> {
+        return this as unknown as Flux<U>
     }
 
     public filter(predicate: (value: T) => boolean): Flux<T> {
-        return new Flux<T>((sink) => {
-            this.subscribe({
-                onNext(data: T) {
-                    if (predicate(data)) sink.emitData(data)
-                    // TODO emit nothing
-                },
-                onError(error: Error) {
-                    sink.emitError(error)
-                },
-                onComplete() {
-                    sink.emitClose()
-                }
-            }).request(Number.MAX_SAFE_INTEGER)
-        })
+        return this.pipe(sink => data => predicate(data) ? sink.emitData(data) : undefined)
     }
 
-    public filterWhen(predicate: (value: T) => Publisher<boolean>): Flux<T> {
-        return this.flatMap(value => {
-            let pub = predicate(value);
-            if (pub instanceof Flux) {
-                pub = pub.first()
-            }
-            return pub
-                .filter(result => result)
-                .map(() => value)
-        })
+    public onErrorContinue(): Flux<T> {
+        throw new Error("Method not implemented.");
+    }
+
+    public switchIfEmpty(alternate: Publisher<T>): Flux<T> {
+        throw new Error("Method not implemented.");
     }
 
     public first(): Mono<T> {
         return new Mono(sink => {
+            const soft = (fn: () => void) => {
+                try {
+                    fn()
+                } catch (e) {
+                    try {
+                        sink.emitError(e);
+                    } catch (e) {
+                    }
+                }
+            }
             this.subscribe({
                 onNext(data: T) {
-                    try {
-                        sink.emitData(data)
-                    } catch (e) {
-                        try {
-                            sink.emitError(e);
-                        } catch (e) {
-                        }
-                    }
+                    soft(() => sink.emitData(data))
                 },
                 onError(error: Error) {
-                    try {
-                        sink.emitError(error)
-                    } catch (e) {
-                        try {
-                            sink.emitError(e);
-                        } catch (e) {
-                        }
-                    }
+                    soft(() => sink.emitError(error))
                 },
                 onComplete() {
-                    try {
-                        sink.emitClose()
-                    } catch (e) {
-                        try {
-                            sink.emitError(e);
-                        } catch (e) {
-                        }
-                    }
+                    soft(() => sink.emitClose())
                 }
             }).request(1)
         })
     }
-
 
     public subscribe(subscriber?: ((data: T) => void) | Subscriber<T>): Subscription {
         const sub = CorePublisher.adaptSubscriber(subscriber || (() => {
@@ -189,7 +112,65 @@ export default class Flux<T> extends CorePublisher<T> {
         }
     }
 
-    protected createSink(): Sink<T> {
-        return Sinks.many().unicast()
+    public pipe<U>(operation: (sink: Sink<U>, count: number) => (((data: T) => void) | Subscriber<T>), transit?: Sink<U>, scheduler: Scheduler = Schedulers.immediate()): Flux<U> {
+        return super.pipe(operation, transit, scheduler) as Flux<U>;
+    }
+
+    public map<U>(mapper: (value: T) => U): Flux<U> {
+        return super.map(mapper) as Flux<U>;
+    }
+
+    public mapNotNull<U>(mapper: (value: T) => U): Flux<U> {
+        return super.mapNotNull(mapper) as Flux<U>;
+    }
+
+    public doFirst(action: () => void): Flux<T> {
+        return super.doFirst(action) as Flux<T>;
+    }
+
+    public doOnNext(action: (value: T) => void): Flux<T> {
+        return super.doOnNext(action) as Flux<T>;
+    }
+
+    public doFinally(action: () => void): Flux<T> {
+        return super.doFinally(action) as Flux<T>;
+    }
+
+    public filterWhen(predicate: (value: T) => Mono<boolean>): Flux<T> {
+        return super.filterWhen(predicate) as Flux<T>;
+    }
+
+    public flatMap<U>(mapper: (value: T) => PipePublisher<U>): Flux<U> {
+        return this.pipe(sink => {
+            return {
+                onNext(data: T) {
+                    mapper(data)
+                        .pipe((other) => {
+                            return {
+                                onComplete() {
+                                    other.emitClose()
+                                }
+                            }
+                        }, sink)
+                        .subscribe()?.request(Number.MAX_SAFE_INTEGER)
+                }
+            }
+        })
+    }
+
+    public onErrorReturn(alternate: Flux<T>): Flux<T> {
+        return super.onErrorReturn(alternate) as Flux<T>;
+    }
+
+    public publishOn(scheduler: Scheduler): Flux<T> {
+        return super.publishOn(scheduler) as Flux<T>;
+    }
+
+    public subscribeOn(scheduler: Scheduler): Flux<T> {
+        return super.subscribeOn(scheduler) as Flux<T>;
+    }
+
+    public timeout(duration: number): Flux<T> {
+        return super.timeout(duration) as Flux<T>;
     }
 }

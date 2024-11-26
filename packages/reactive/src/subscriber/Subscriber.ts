@@ -13,7 +13,7 @@ export default interface Subscriber<T> {
      * Пример использования:
      *   subscriber.onNext('Hello world'); // Обрабатываем полученные данные
      */
-    onNext(data: T): void;
+    onNext?(data: T): void;
 
     /**
      * Метод, вызываемый при возникновении ошибки в потоке данных.
@@ -25,7 +25,7 @@ export default interface Subscriber<T> {
      * Пример использования:
      *   subscriber.onError(new Error('Network failure')); // Обрабатываем ошибку
      */
-    onError(error: Error): void;
+    onError?(error: Error): void;
 
     /**
      * Метод, вызываемый, когда поток данных завершён (например, все данные были получены или завершён процесс).
@@ -35,5 +35,5 @@ export default interface Subscriber<T> {
      * Пример использования:
      *   subscriber.onComplete(); // Обрабатываем завершение потока
      */
-    onComplete(): void;
+    onComplete?(): void;
 }

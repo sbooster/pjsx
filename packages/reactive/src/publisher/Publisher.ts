@@ -25,9 +25,5 @@ export default interface Publisher<T> {
      *   publisher.subscribe((data: string) => console.log('Полученные данные:', data)); // Подписка с использованием коллбека
      *   publisher.subscribe(new MySubscriber()); // Подписка с использованием объекта Subscriber
      */
-    subscribe(subscriber: ((data: T) => void) | Subscriber<T>): void | Subscription | any;
-
-    // TODO вынести куда-то
-    filter(predicate: (value: T) => boolean): Publisher<T>
-    map<U>(mapper: (value: T) => U): Publisher<U>
+    subscribe(subscriber?: ((data: T) => void) | Subscriber<T>): void | Subscription | any;
 }
