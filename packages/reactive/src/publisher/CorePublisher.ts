@@ -87,12 +87,6 @@ export default abstract class CorePublisher<T> implements PipePublisher<T> {
         if (typeof subscriber == "function") {
             return {
                 onNext: subscriber,
-                onComplete() {
-                    // TODO default complete handler
-                },
-                onError(error: Error) {
-                    // TODO default error handler
-                }
             } as Subscriber<T>
         }
         return subscriber
