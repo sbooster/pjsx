@@ -50,6 +50,10 @@ export default class BufferedSink<T> implements Sink<T> {
             }
             this.requested--;
         }
+        if(this.backpressure[0]?.signal == Signal.CLOSE) {
+            this.backpressure.shift()
+            this.emitClose()
+        }
     }
 
     /**
