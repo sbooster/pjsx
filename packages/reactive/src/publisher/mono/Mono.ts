@@ -179,7 +179,7 @@ export default class Mono<T> extends CorePublisher<T> {
      * @returns Новый Mono с одним значением или пустым потоком.
      */
     public static justOrEmpty<T>(value: T): Mono<T> {
-        return value == null ? Mono.empty() : new Mono((sink) => sink.emitData(value));
+        return value == null ? Mono.empty() : Mono.just(value);
     }
 
     /**
