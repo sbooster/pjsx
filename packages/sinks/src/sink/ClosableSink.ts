@@ -1,12 +1,12 @@
 import {Listener} from "@/listener/Listener";
-import Sink from "@/sink/Sink";
+import CoreSink from "@/sink/CoreSink";
 
 /**
  * Абстрактный класс для реализации Sink, который поддерживает завершение потока.
  * Этот класс предоставляет общую логику для потоков, которые могут быть завершены (или по ошибке, или нормальным завершением).
  * Классы, которые наследуются от ClosableSink, должны реализовывать логику для эмита значений и ошибок.
  */
-export default abstract class ClosableSink<T> implements Sink<T> {
+export default abstract class ClosableSink<T> extends CoreSink<T> {
     protected closed: boolean = false;   // Флаг, который указывает, завершена ли работа потока (эмитировано значение или ошибка).
 
     /**

@@ -1,44 +1,51 @@
 import {Listener} from "@/listener/Listener";
 import BufferedSink from "@/sink/backpressure/BufferedSink";
+import {Sink} from "@/index";
 
 /**
  * Интерфейс Sink<T> описывает источник данных, поддерживающий операции по отправке значений,
  * ошибок, а также управление слушателями.
  */
-export default interface Sink<T> {
+export default abstract class CoreSink<T> implements Sink<T> {
+
+    constructor() {
+    }
+
     /**
      * Отправляет следующее значение слушателям.
      *
      * @param value Значение, которое будет отправлено слушателям.
      */
-    emitData(value: T): void;
+    abstract emitData(value: T): void;
 
     /**
      * Отправляет ошибку слушателям.
      *
      * @param error Ошибка, которая будет отправлена слушателям.
      */
-    emitError(error: Error): void;
+    abstract emitError(error: Error): void;
 
     /**
      * Завершает поток данных, уведомляя слушателей.
      * После вызова этого метода ни одно новое значение или ошибка не будут отправлены.
      */
-    emitClose(): void;
+    abstract emitClose(): void;
 
     /**
      * Добавляет слушателя, который будет получать данные, ошибки или уведомления о завершении.
      *
      * @param listener слушатель, реализующий интерфейс Listener<T>.
      */
-    addListener(listener: Listener<T>): void;
+    abstract addListener(listener: Listener<T>): void;
 
     /**
      * Удаляет слушателя. Необязательно для всех реализаций, но предусмотрено интерфейсом.
      *
      * @param listener слушатель, который должен быть удалён.
      */
-    removeListener(listener: Listener<T>): void;
+    abstract removeListener(listener: Listener<T>): void;
 
-    buffer(): BufferedSink<T>;
+    public buffer(): BufferedSink<T> {
+        return new BufferedSink(this)
+    }
 }
