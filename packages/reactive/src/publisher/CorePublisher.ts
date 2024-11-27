@@ -1,8 +1,8 @@
-import Subscriber from "../subscriber/Subscriber";
-import Subscription from "../subscription/Subscription";
-import {Listener, Signal, Sink} from "sinks";
+import Subscriber from "@/subscriber/Subscriber";
+import Subscription from "@/subscription/Subscription";
 import PipePublisher from "@/publisher/PipePublisher";
-import Schedulers, {Scheduler} from "schedulers";
+import {Listener, Signal, Sink} from "sinks";
+import {Schedulers, Scheduler} from "schedulers";
 
 /**
  * Абстрактный класс для реализации издателя (Publisher), который управляет подписчиками

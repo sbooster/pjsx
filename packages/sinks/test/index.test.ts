@@ -1,4 +1,5 @@
-import Sinks, {Signal, Sink} from '@/index';
+// @ts-ignore
+import {Sinks, Signal, Sink} from '@/index';
 
 describe('Sinks.one()', () => {
     test('should close after emit', () => {

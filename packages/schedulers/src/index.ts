@@ -6,7 +6,7 @@ export declare type CancellableScheduler = {
     schedule: (task: Task) => { cancel: () => void };
 } & Scheduler
 
-export default {
+export const Schedulers = {
     delay(ms: number): CancellableScheduler {
         return {
             schedule: runnable => {

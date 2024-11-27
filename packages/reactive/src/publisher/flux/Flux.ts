@@ -1,10 +1,11 @@
 import CorePublisher from "@/publisher/CorePublisher";
-import Sinks, {Sink} from "sinks";
 import Subscriber from "@/subscriber/Subscriber";
 import Subscription from "@/subscription/Subscription";
 import Mono from "@/publisher/mono/Mono";
-import Schedulers, {Scheduler} from "schedulers";
 import PipePublisher from "@/publisher/PipePublisher";
+
+import {Sinks, Sink} from "sinks";
+import {Schedulers, Scheduler} from "schedulers";
 
 /**
  * Класс Flux представляет собой поток данных, который может быть преобразован, фильтруем, подписан и обработан.

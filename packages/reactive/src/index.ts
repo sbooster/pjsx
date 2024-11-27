@@ -1,7 +1,15 @@
-export {default as Mono} from '@/publisher/mono/Mono'
-export {default as Flux} from '@/publisher/flux/Flux'
-export {default as CorePublisher} from '@/publisher/CorePublisher'
-export type {default as PipePublisher} from '@/publisher/PipePublisher'
-export type {default as Publisher} from '@/publisher/Publisher'
-export type {default as Subscriber} from '@/subscriber/Subscriber'
-export type {default as Subscription} from '@/subscription/Subscription'
+import Mono from "@/publisher/mono/Mono";
+import Flux from "@/publisher/flux/Flux";
+import Publisher from "@/publisher/Publisher";
+import Subscription from "@/subscription/Subscription";
+import Subscriber from "@/subscriber/Subscriber";
+import PipePublisher from "@/publisher/PipePublisher";
+
+export {
+    Mono,
+    Flux,
+    type Publisher,
+    type PipePublisher,
+    type Subscriber,
+    type Subscription
+}

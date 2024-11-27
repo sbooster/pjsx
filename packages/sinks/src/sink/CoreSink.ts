@@ -1,6 +1,6 @@
 import {Listener} from "@/listener/Listener";
 import BufferedSink from "@/sink/backpressure/BufferedSink";
-import {Sink} from "@/index";
+import Sink from "@/sink/Sink";
 
 /**
  * Интерфейс Sink<T> описывает источник данных, поддерживающий операции по отправке значений,

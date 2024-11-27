@@ -1,5 +1,5 @@
 import {Listener, Signal} from "@/listener/Listener";
-import {Sink} from "@/index";
+import Sink from "@/sink/Sink";
 
 /**
  * BufferingSink — враппер для Sink, который буферизирует данные.

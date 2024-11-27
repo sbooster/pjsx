@@ -4,23 +4,27 @@
     "module": "ESNext",
     "lib": [
       "ESNext",
-      "DOM"
+      "DOM",
+      "DOM.Iterable"
     ],
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    /* Linting */
     "strict": true,
     "strictNullChecks": false,
     "useUnknownInCatchVariables": false,
     "declaration": true,
     "declarationMap": true,
+    /* Building */
     "outDir": "./dist",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
     "baseUrl": ".",
-    "importHelpers": true,
-    "moduleDetection": "force",
-    "isolatedModules": true,
-    "resolveJsonModule": true,
     "paths": {
       "@/*": [
         "src/*"

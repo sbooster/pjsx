@@ -1,10 +1,11 @@
 import Subscriber from "@/subscriber/Subscriber";
 import Subscription from "@/subscription/Subscription";
-import Sinks, {Sink} from "sinks";
 import PipePublisher from "@/publisher/PipePublisher";
-import Schedulers, {Scheduler} from "schedulers";
 import CorePublisher from "@/publisher/CorePublisher";
 import Flux from "@/publisher/flux/Flux";
+
+import {Sinks, Sink} from "sinks";
+import {Schedulers, Scheduler} from "schedulers";
 
 /**
  * Mono — это класс, который представляет собой Publisher, эмитирующий 0 или 1 элемент.

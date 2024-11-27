@@ -3,20 +3,14 @@ import OneSink from "@/sink/one/OneSink";
 import ManySink from "@/sink/many/ManySink";
 import {ReplayLatestSink, ReplayLimitSink, ReplyAllSink} from "@/sink/many/reply/ReplySink";
 import UnicastSink from "@/sink/many/unicast/UnicastSink";
-
-export {default as ClosableSink} from "@/sink/ClosableSink";
-export type {default as Sink} from "@/sink/Sink";
-export * from "@/listener/Listener";
-export * from "@/listener/Listener";
-export * from '@/sink/one'
-export * from '@/sink/many'
+import {Signal, Listener} from "@/listener/Listener";
 
 /**
  * Этот модуль предоставляет фабрику для создания различных типов Sinks:
  * - `one` — для единственного эмита.
  * - `many` — для множественных эмитов с различными вариантами обработки слушателей.
  */
-export default {
+const Sinks = {
     /**
      * Создаёт Sink, который поддерживает только один эмит (значение или ошибка).
      * После первого эмита Sink закрывается, и все вызовы emit будут игнорироваться.
@@ -91,4 +85,11 @@ export default {
             }
         }
     }
+}
+
+export {
+    Sinks,
+    type Sink,
+    Signal,
+    type Listener
 }
