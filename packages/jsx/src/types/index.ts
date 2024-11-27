@@ -1,12 +1,14 @@
+// @ts-ignore
 import type * as Html from '@michijs/htmltype'
 import type * as Css from 'csstype'
+import {Publisher} from "reactive";
 
 
 type BaseProps = Record<string, unknown>
 declare global {
     export namespace JSX {
         type Primitive = string | number | boolean | null | undefined
-        type Element = string | null // Точно ли Element должен быть string?
+        type Element = Node | Primitive | Publisher<unknown>
         type Children = Element | Element[] | undefined
 
         type WithChildren<T = object> = T & { children?: Children }
@@ -43,15 +45,25 @@ declare global {
             props: object
         }
 
-        type BaseProps = Record<string, unknown>
+        type BaseProps = {
+            [key: string]: any
+        }
 
         type Props<T extends BaseProps = BaseProps> = WithChildren<T>
         type FuncComponent<T extends BaseProps = BaseProps> = (
             props: Props<T>
         ) => Element
+        type ClassComponentConstructor<T extends BaseProps = {}> = {new (props: T): ClassComponent<T>};
+        interface ClassComponent<T extends BaseProps = {}> {
+            render?(): Element;
 
-        type ClassComponent<T extends BaseProps = BaseProps> = (new () => {
-            props?: T
-        }) & { key: string }
+            beforeMount?(): void;
+
+            mounted?(): void;
+
+            beforeUnmount?(): void;
+
+            unmounted?(): void;
+        }
     }
 }

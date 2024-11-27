@@ -1,6 +1,7 @@
-import {h} from "../h";
+import {h, Fragment} from "@/h";
 
 export {
     h as jsx,
-    h as jsxs
+    h as jsxs,
+    Fragment
 }

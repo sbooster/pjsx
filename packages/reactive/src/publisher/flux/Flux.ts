@@ -115,7 +115,7 @@ export default class Flux<T> extends CorePublisher<T> {
      * @returns Новый Sink, который будет использоваться для обработки данных.
      */
     protected createSink(): Sink<T> {
-        return Sinks.many().unicast();
+        return Sinks.many().multicast();
     }
 
     /**

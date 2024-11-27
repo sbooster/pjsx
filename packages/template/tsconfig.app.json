@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": [
       "ESNext",
@@ -12,39 +13,20 @@
     "moduleResolution": "Bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
-    "esModuleInterop": true,
-    "importHelpers": true,
     "moduleDetection": "force",
     "noEmit": true,
-    /*"jsx": "react-jsx",
-    "jsxImportSource": "jsx",*/
+    "jsx": "react-jsx",
+    "jsxImportSource": "jsx",
     /* Linting */
     "strict": true,
     "strictNullChecks": false,
     "useUnknownInCatchVariables": false,
-    "declaration": true,
-    "declarationMap": true,
-    /* Building */
-    "outDir": "./dist",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    }
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.vite.json"
-    }
+    "src"
   ]
 }
