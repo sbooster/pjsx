@@ -7,6 +7,8 @@ export function h(
     tag: string | JSX.FuncComponent | JSX.ClassComponentConstructor,
     props: JSX.Props | JSX.WithChildren<JSX.HtmlAttributes> | null
 ): JSX.Element {
+    if((window as any).isSSR)  {
+    }
     if (typeof tag === 'function') {
         if (tag.prototype?.render != null) {
             const instance = new (tag as JSX.ClassComponentConstructor)(props as JSX.Props);

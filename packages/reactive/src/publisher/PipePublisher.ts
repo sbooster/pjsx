@@ -1,10 +1,9 @@
-import Subscriber from "@/subscriber/Subscriber";
 import Publisher from "@/publisher/Publisher";
 import {Scheduler} from "schedulers";
-import {Sink} from "sinks";
+import {OperatorFunction} from "rxjs";
 
 export default interface PipePublisher<T> extends Publisher<T> {
-    pipe<U>(operation: (sink: Sink<U>, count: number) => ((data: T) => void) | Subscriber<T>, transit?: Sink<U>, scheduler?: Scheduler): PipePublisher<U>
+    pipe<U>(operation: OperatorFunction<T, U>): PipePublisher<U>
 
     map<U>(mapper: (value: T) => U): PipePublisher<U>
 
