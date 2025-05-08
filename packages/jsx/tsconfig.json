@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                   // Какой JS генерировать (поддержка async/await, Promise и т.п.)
+    "module": "ESNext",                   // Какой модульный стандарт использовать (ESM, чтобы tsup лучше работал)
+    "declaration": true,                  // Генерировать .d.ts файлы (нужно для библиотек)
+    "declarationDir": "dist",             // Куда складывать .d.ts
+    "baseUrl": ".",                       // Задает базовую папку для относительных импортов и alias
+    "paths": {
+      "@/*": ["src/*"]                    // Настройка псевдонима @ как пути к папке src/
+    },
+    "rootDir": "src",                     // Указывает папку с исходным кодом, которую TypeScript будет компилировать
+    "outDir": "dist",                     // Куда компилировать JS
+    "strict": true,                       // Включает все строгие проверки типов (рекомендуется)
+    "esModuleInterop": true,              // Чтобы можно было `import foo from "foo"` даже если модуль CommonJS
+    "moduleResolution": "node",           // Как искать модули (по правилу Node.js)
+    "resolveJsonModule": true,            // Разрешать импорт .json файлов
+    "isolatedModules": true,              // Требует, чтобы каждый файл мог быть скомпилирован независимо (важно для esbuild/tsup)
+    "allowSyntheticDefaultImports": true, // Позволяет писать `import x from 'cjs'`, даже если экспорта по умолчанию нет
+    "skipLibCheck": true                  // Пропускать проверку типов в node_modules (ускоряет сборку)
+//    "noImplicitAny": false
+  },
+  "include": ["src/**/*.ts"],              // Какие файлы компилировать
+  "references": [                          // Позволяет разделить конфигурации: одна — для разработки, вторая — для сборки.
+    {
+      "path": "./tsconfig.tsup.json"       // Ссылка на дополнительный tsconfig, который можно использовать для сборки через tsup.
+    },
+  ]
+}

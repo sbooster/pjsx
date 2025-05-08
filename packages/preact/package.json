@@ -1,0 +1,44 @@
+{
+  "name": "@pjsx/preact",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./jsx-runtime": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "start": "tsx watch ./src/index.ts",
+    "build": "tsup src/index.ts"
+  },
+  "author": "CKATEPTb",
+  "license": "LGPL-3.0-only",
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "@preact/signals": "^2.0.4",
+    "preact": "^10.25.3"
+  },
+  "dependencies": {
+    "@pjsx/core": "workspace:core"
+  }
+}
