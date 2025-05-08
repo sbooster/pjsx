@@ -39,6 +39,6 @@
     "preact": "^10.25.3"
   },
   "dependencies": {
-    "@pjsx/core": "workspace:core"
+    "@pjsx/core": "../core"
   }
 }
