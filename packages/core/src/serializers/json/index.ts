@@ -23,26 +23,32 @@ import {Serializer} from "@/serializers";
 export default {
     serialize(obj: any): string {
         return JSON.stringify(obj, (_key, value) => {
-            if(value == null) return value
+            if (value == null) return value
             switch (Object.getPrototypeOf(value)?.constructor) {
-                case Map: return {
-                    "__type__": "Map",
-                    "value": Array.from(value.entries())
-                }
-                case Set: return {
-                    "__type__": "Set",
-                    "value": Array.from(value)
-                }
-                default: return value
+                case Map:
+                    return {
+                        "__type__": "Map",
+                        "value": Array.from(value.entries())
+                    }
+                case Set:
+                    return {
+                        "__type__": "Set",
+                        "value": Array.from(value)
+                    }
+                default:
+                    return value
             }
         })
     },
     deserialize<C>(obj: string): C {
         return JSON.parse(obj, (_key, value) => {
             switch (value?.__type__) {
-                case "Map": return new Map(value.value)
-                case "Set": return new Set(value.value)
-                default: return value
+                case "Map":
+                    return new Map(value.value)
+                case "Set":
+                    return new Set(value.value)
+                default:
+                    return value
             }
         })
     },

@@ -37,38 +37,6 @@ export abstract class BackpressureSink<T> implements Sink<T>, Publisher<T> {
     protected readonly subscribers = new Set<Backpressure<T>>()
     protected completed = false
 
-    protected emit(action: EmitAction<T>, subscriber: Subscriber<T>) {
-        switch (action.emit) {
-            case "next": {
-                try {
-                    subscriber.onNext(action.data as T)
-                } catch (error) {
-                    subscriber.onError(error as Error)
-                }
-                break;
-            }
-            case "error": {
-                subscriber.onError(action.data as Error)
-                break;
-            }
-            case "complete": {
-                subscriber.onComplete()
-            }
-        }
-    }
-
-    private flush(backpressure: Backpressure<T>) {
-        const data = backpressure.data;
-        while (backpressure.requested > 0 && data.length > 0) {
-            backpressure.requested--
-            this.emit(data.shift() as EmitAction<T>, backpressure.subscriber)
-        }
-        if (data.length > 0 && data[0].emit == "complete") {
-            backpressure.requested++
-            this.flush(backpressure)
-        }
-    }
-
     public subscribe(subscriber: Subscriber<T>): Subscription {
         // if (this.completed) throw new Error('The completed sink is not accepting new subscribers.')
 
@@ -90,10 +58,6 @@ export abstract class BackpressureSink<T> implements Sink<T>, Publisher<T> {
                 this.subscribers.delete(backpressure)
             }
         }
-    }
-
-    protected validateEmit() {
-        if (this.completed) throw new Error('The completed sink is not accepting new emits.')
     }
 
     public next(value: T): void {
@@ -121,5 +85,41 @@ export abstract class BackpressureSink<T> implements Sink<T>, Publisher<T> {
             this.flush(subscriber)
         }
         this.subscribers.clear()
+    }
+
+    protected emit(action: EmitAction<T>, subscriber: Subscriber<T>) {
+        switch (action.emit) {
+            case "next": {
+                try {
+                    subscriber.onNext(action.data as T)
+                } catch (error) {
+                    subscriber.onError(error as Error)
+                }
+                break;
+            }
+            case "error": {
+                subscriber.onError(action.data as Error)
+                break;
+            }
+            case "complete": {
+                subscriber.onComplete()
+            }
+        }
+    }
+
+    protected validateEmit() {
+        if (this.completed) throw new Error('The completed sink is not accepting new emits.')
+    }
+
+    private flush(backpressure: Backpressure<T>) {
+        const data = backpressure.data;
+        while (backpressure.requested > 0 && data.length > 0) {
+            backpressure.requested--
+            this.emit(data.shift() as EmitAction<T>, backpressure.subscriber)
+        }
+        if (data.length > 0 && data[0].emit == "complete") {
+            backpressure.requested++
+            this.flush(backpressure)
+        }
     }
 }

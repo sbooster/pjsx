@@ -78,7 +78,8 @@ function jsx(tag: Tag, props: Props): HTMLElement | DocumentFragment {
                         return tag(props)
                     }
                 }).get()
-            default: return jsx(String(tag) as Tag, props)
+            default:
+                return jsx(String(tag) as Tag, props)
         }
     })(tag)
     if (element instanceof HTMLElement) {

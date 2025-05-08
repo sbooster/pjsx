@@ -18,7 +18,7 @@
  */
 
 
-import {encode, decode} from "js-base64";
+import {decode, encode} from "js-base64";
 import {Serializer} from "src/serializers";
 
 export default {

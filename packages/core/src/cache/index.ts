@@ -93,6 +93,10 @@ export class CacheBuilder<K, V> {
         return this
     }
 
+    public build() {
+        return new Cache<K, V>(this.buildOptions())
+    }
+
     private buildOptions() {
         return {
             name: this._name,
@@ -105,10 +109,6 @@ export class CacheBuilder<K, V> {
             onRemove: this._onRemove
         }
     }
-
-    public build() {
-        return new Cache<K, V>(this.buildOptions())
-    }
 }
 
 class Cache<K, V> {
@@ -116,24 +116,6 @@ class Cache<K, V> {
 
     public constructor(protected readonly options: CacheOptions<K, V>) {
         this.initialize()
-    }
-
-    private initialize() {
-        const storageType = this.options.storage;
-        if (storageType == 'memory' || window == null) return
-        const name = this.options.name;
-        if (name == null) throw new Error('Stores other than memory require an explicit name')
-        window.addEventListener('beforeunload', this.save)
-        const storage = window[`${storageType}Storage`]
-        const encode = this.options.encode;
-        const stored = storage.getItem(encode ? Rc4.serialize(name, name) : name)
-        if (stored == null) return
-        const decoded: Map<K, CacheEntry<V>> = encode ? Stringify.deserialize(stored) : Json.deserialize(stored)
-        decoded.forEach((value, key) => {
-            if (value.expire == -1 || value.expire > Date.now()) {
-                this.cache.set(key, value)
-            }
-        })
     }
 
     public save() {
@@ -189,6 +171,24 @@ class Cache<K, V> {
             this.invalidate(next.value)
             next = keys.next()
         }
+    }
+
+    private initialize() {
+        const storageType = this.options.storage;
+        if (storageType == 'memory' || window == null) return
+        const name = this.options.name;
+        if (name == null) throw new Error('Stores other than memory require an explicit name')
+        window.addEventListener('beforeunload', this.save)
+        const storage = window[`${storageType}Storage`]
+        const encode = this.options.encode;
+        const stored = storage.getItem(encode ? Rc4.serialize(name, name) : name)
+        if (stored == null) return
+        const decoded: Map<K, CacheEntry<V>> = encode ? Stringify.deserialize(stored) : Json.deserialize(stored)
+        decoded.forEach((value, key) => {
+            if (value.expire == -1 || value.expire > Date.now()) {
+                this.cache.set(key, value)
+            }
+        })
     }
 }
 

@@ -34,10 +34,10 @@ const textDecoder = new TextDecoder('utf-8');
 class SiaSerializer extends TypeWriter implements Serializer<any, Uint8Array<ArrayBuffer>> {
     protected buffer: Uint8Array<ArrayBuffer>
     protected keyRefIndex = 0;
-    private keyRefMap = new Map<string, number>()
     protected objectRefIndex = 0;
-    private objectRefMap = new Map<any, number>()
     protected offset = 0;
+    private keyRefMap = new Map<string, number>()
+    private objectRefMap = new Map<any, number>()
     private readonly decoderMap
 
     private readonly registry = new Map<string | (new (...args: any) => any), (writer: SiaSerializer, item: any, keyRefMap: Map<string, number>, objectRefMap: Map<any, number>) => void>

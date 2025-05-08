@@ -53,6 +53,21 @@ export class BackpressurePublisher<T> implements Publisher<T> {
         this.subscription.request(Number.MAX_SAFE_INTEGER)
     }
 
+    public subscribe(subscriber: Subscriber<T>): Subscription {
+        if (this.subscriber != null) throw new Error("Backpressure unicast publisher is not accepting new subscribers")
+        this.subscriber = subscriber;
+        return {
+            request: (count: number) => {
+                this.requested += count
+                this.flush()
+            },
+            unsubscribe: () => {
+                this.backpressure = []
+                this.subscription.unsubscribe()
+            }
+        };
+    }
+
     private emit(action: EmitAction<T>) {
         switch (action.emit) {
             case "next": {
@@ -81,21 +96,6 @@ export class BackpressurePublisher<T> implements Publisher<T> {
         if (this.subscriber != null && this.backpressure[0]?.emit == 'complete') {
             this.emit(this.backpressure.shift() as EmitAction<T>)
         }
-    }
-
-    public subscribe(subscriber: Subscriber<T>): Subscription {
-        if (this.subscriber != null) throw new Error("Backpressure unicast publisher is not accepting new subscribers")
-        this.subscriber = subscriber;
-        return {
-            request: (count: number) => {
-                this.requested += count
-                this.flush()
-            },
-            unsubscribe: () => {
-                this.backpressure = []
-                this.subscription.unsubscribe()
-            }
-        };
     }
 
 }

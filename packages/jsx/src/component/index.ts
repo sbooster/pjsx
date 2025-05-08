@@ -21,9 +21,13 @@
 export abstract class Component<P extends object = {}> {
     public constructor(public readonly props: P = {} as P) {
     }
+
     public abstract render(): HTMLElement
+
     public beforeMount?(): void
+
     public onMount?(): void
+
     public onUnmount?(): void
 }
 

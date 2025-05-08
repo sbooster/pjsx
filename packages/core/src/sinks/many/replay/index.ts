@@ -24,16 +24,6 @@ import {BackpressureSink, EmitAction} from "@/sinks/backpressure";
 export abstract class ReplaySink<T> extends ManySink<T> implements BackpressureSink<T> {
     readonly buffer: EmitAction<T>[] = []
 
-    protected replay(subscriber: Subscriber<T>) {
-        for (const action of this.buffer) {
-            this.emit(action, subscriber)
-        }
-    }
-
-    protected store(emit: 'next' | 'error' | 'complete', data?: T | Error) {
-        this.buffer.push({emit, data})
-    }
-
     public override next(value: T): void {
         super.next(value)
         this.store('next', value)
@@ -53,5 +43,15 @@ export abstract class ReplaySink<T> extends ManySink<T> implements BackpressureS
         const subscription = super.subscribe(subscriber)
         this.replay(subscriber)
         return subscription
+    }
+
+    protected replay(subscriber: Subscriber<T>) {
+        for (const action of this.buffer) {
+            this.emit(action, subscriber)
+        }
+    }
+
+    protected store(emit: 'next' | 'error' | 'complete', data?: T | Error) {
+        this.buffer.push({emit, data})
     }
 }

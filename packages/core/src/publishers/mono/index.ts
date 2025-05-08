@@ -36,30 +36,6 @@ export class Mono<T> extends AbstractPipePublisher<T> {
         super(publisher)
     }
 
-    /**
-     * Подписывает подписчика на обёрнутый Publisher.
-     */
-
-    public subscribe({
-                         onNext = (value: T) => {
-                         },
-                         onError = (error: Error) => {
-                         },
-                         onComplete = () => {
-                         }
-                     } = {}): Subscription {
-        return peek(this.publisher.subscribe({onNext, onError, onComplete})).peek(val => val.request(1)).get()
-    }
-
-    public sinkType(): 'one' | 'many' {
-        return 'one';
-    }
-
-
-    // =========================================================================
-    // =                            Статические фабрики                        =
-    // =========================================================================
-
     public static from<T>(publisher: Publisher<T>): Mono<T> {
         return Mono.generate(sink =>
             lazyPeek<Subscription>((self) => publisher.subscribe({
@@ -82,6 +58,11 @@ export class Mono<T> extends AbstractPipePublisher<T> {
     public static generate<T>(generator: ((sink: Sink<T>) => void)): Mono<T> {
         return new Mono(combine(new OneSink<T>(), generator))
     }
+
+
+    // =========================================================================
+    // =                            Статические фабрики                        =
+    // =========================================================================
 
     /**
      * Возвращает Mono, испускающий одно значение и завершающийся.
@@ -158,6 +139,25 @@ export class Mono<T> extends AbstractPipePublisher<T> {
         }))
     }
 
+    /**
+     * Подписывает подписчика на обёрнутый Publisher.
+     */
+
+    public subscribe({
+                         onNext = (value: T) => {
+                         },
+                         onError = (error: Error) => {
+                         },
+                         onComplete = () => {
+                         }
+                     } = {}): Subscription {
+        return peek(this.publisher.subscribe({onNext, onError, onComplete})).peek(val => val.request(1)).get()
+    }
+
+    public sinkType(): 'one' | 'many' {
+        return 'one';
+    }
+
     // =========================================================================
     // =                             INSTANCE-МЕТОДЫ                            =
     // =========================================================================
@@ -186,7 +186,7 @@ export class Mono<T> extends AbstractPipePublisher<T> {
                     sink.error(error)
                 },
                 onComplete: () => {
-                    if(subscription == null) sink.complete()
+                    if (subscription == null) sink.complete()
                 }
             })
             return {

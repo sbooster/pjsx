@@ -48,6 +48,7 @@ export default new class Rc4 implements Serializer<string, string> {
         }
         return res
     }
+
     public deserialize<C extends string>(data: string, secret = 'rc4'): C {
         return this.serialize(data, secret) as C
     }

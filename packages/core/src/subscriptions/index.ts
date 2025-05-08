@@ -23,7 +23,9 @@
  */
 export interface Subscriber<T> {
     onNext(value: T): void
+
     onError(error: Error): void
+
     onComplete(): void
 }
 
@@ -32,5 +34,6 @@ export interface Subscriber<T> {
  */
 export interface Subscription {
     request(count: number): void
+
     unsubscribe(): void
 }

@@ -35,6 +35,65 @@ export class Flux<T> extends AbstractPipePublisher<T> {
         super(publisher)
     }
 
+    public static from<T>(publisher: Publisher<T>): Flux<T> {
+        return Flux.generate(sink => {
+            return publisher.subscribe({
+                onNext(value: T) {
+                    sink.next(value)
+                },
+                onError(error: Error) {
+                    sink.error(error)
+                },
+                onComplete() {
+                    sink.complete()
+                }
+            })
+        })
+    }
+
+    public static generate<T>(generator: ((sink: Sink<T>) => void)): Flux<T> {
+        return new Flux(combine(new ManySink<T>(), generator))
+    }
+
+    public static fromIterable<T>(iterable: Iterable<T>): Flux<T> {
+        return Flux.generate(sink => {
+            for (const value of iterable) {
+                sink.next(value);
+            }
+            sink.complete();
+        })
+    }
+
+    public static range(start: number, count: number): Flux<number> {
+        return Flux.generate(sink => {
+            let current = start;
+            for (let i = 0; i < count; i++) {
+                sink.next(current++);
+            }
+            sink.complete();
+        })
+    }
+
+    public static empty<T = never>(): Flux<T> {
+        return Flux.generate(sink => {
+            sink.complete()
+        })
+    }
+
+    public static defer<T>(factory: () => Flux<T>): Flux<T> {
+        return Flux.generate(sink => factory().subscribe({
+            onNext(value: T) {
+                sink.next(value)
+            },
+            onError(error: Error) {
+                sink.error(error)
+            },
+            onComplete() {
+                sink.complete()
+            }
+        }))
+    }
+
     public sinkType(): 'one' | 'many' {
         return 'many';
     }
@@ -269,6 +328,10 @@ export class Flux<T> extends AbstractPipePublisher<T> {
         }, undefined, request => sub?.request(request), () => sub?.unsubscribe())
     }
 
+    // =========================================================================
+    // =                            СТАТИЧЕСКИЕ МЕТОДЫ                         =
+    // =========================================================================
+
     public concatWith(other: Publisher<T>): Flux<T> {
         let pipeSub: Subscription
         return this.pipe((onNext, onError, onComplete) => {
@@ -387,69 +450,6 @@ export class Flux<T> extends AbstractPipePublisher<T> {
                 }
             }).request(Number.MAX_SAFE_INTEGER)
         })
-    }
-
-    // =========================================================================
-    // =                            СТАТИЧЕСКИЕ МЕТОДЫ                         =
-    // =========================================================================
-
-    public static from<T>(publisher: Publisher<T>): Flux<T> {
-        return Flux.generate(sink => {
-            return publisher.subscribe({
-                onNext(value: T) {
-                    sink.next(value)
-                },
-                onError(error: Error) {
-                    sink.error(error)
-                },
-                onComplete() {
-                    sink.complete()
-                }
-            })
-        })
-    }
-
-    public static generate<T>(generator: ((sink: Sink<T>) => void)): Flux<T> {
-        return new Flux(combine(new ManySink<T>(), generator))
-    }
-
-    public static fromIterable<T>(iterable: Iterable<T>): Flux<T> {
-        return Flux.generate(sink => {
-            for (const value of iterable) {
-                sink.next(value);
-            }
-            sink.complete();
-        })
-    }
-
-    public static range(start: number, count: number): Flux<number> {
-        return Flux.generate(sink => {
-            let current = start;
-            for (let i = 0; i < count; i++) {
-                sink.next(current++);
-            }
-            sink.complete();
-        })
-    }
-
-    public static empty<T = never>(): Flux<T> {
-        return Flux.generate(sink => {
-            sink.complete()
-        })
-    }
-
-    public static defer<T>(factory: () => Flux<T>): Flux<T> {
-        return Flux.generate(sink => factory().subscribe({
-            onNext(value: T) {
-                sink.next(value)
-            },
-            onError(error: Error) {
-                sink.error(error)
-            },
-            onComplete() {
-                sink.complete()
-            }
-        }))
     }
 
     public subscribe({

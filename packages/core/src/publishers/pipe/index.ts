@@ -109,16 +109,12 @@ export interface PipePublisher<T> extends Publisher<T> {
 }
 
 export abstract class AbstractPipePublisher<T> implements PipePublisher<T> {
-    abstract subscribe(subscriber: Subscriber<T>): Subscription
-
-    abstract sinkType(): 'one' | 'many'
-
     protected constructor(protected readonly publisher: Publisher<T>) {
     }
 
-    private wrap<R>(publisher: Publisher<R>) {
-        return Reflect.construct((Reflect.getPrototypeOf(this) as PipePublisher<any>).constructor, [publisher])
-    }
+    abstract subscribe(subscriber: Subscriber<T>): Subscription
+
+    abstract sinkType(): 'one' | 'many'
 
     public pipe<R>(producer: (onNext: (value: R) => void, onError: (error: Error) => void, onComplete: () => void) => void, onSubscribe?: (subscriber: Subscriber<R>) => void, onRequest?: (request: number) => void, onUnsubscribe?: () => void): PipePublisher<R> {
         const many = this.sinkType() == 'many';
@@ -248,7 +244,9 @@ export abstract class AbstractPipePublisher<T> implements PipePublisher<T> {
         let sub: Subscription
         return this.pipe((onNext, onError, onComplete) =>
             sub = this.subscribe({
-                onNext, onError: error => predicate(error) ? (this.sinkType() == 'many') ? onNext(null as T) : onComplete() : onError(error), onComplete
+                onNext,
+                onError: error => predicate(error) ? (this.sinkType() == 'many') ? onNext(null as T) : onComplete() : onError(error),
+                onComplete
             }), undefined, request => sub?.request(request), () => sub?.unsubscribe())
     }
 
@@ -317,5 +315,9 @@ export abstract class AbstractPipePublisher<T> implements PipePublisher<T> {
                 })))),
             undefined, request => sub?.then(value => value.request(request)), () => sub?.then(value => value.unsubscribe())
         )
+    }
+
+    private wrap<R>(publisher: Publisher<R>) {
+        return Reflect.construct((Reflect.getPrototypeOf(this) as PipePublisher<any>).constructor, [publisher])
     }
 }

@@ -3,17 +3,8 @@
 // Users who only use Preact for SSR might not specify "dom" in their lib in tsconfig.json
 /// <reference lib="dom" />
 
-import {
-    ClassAttributes,
-    Component,
-    ComponentType,
-    FunctionComponent,
-    PreactDOMAttributes,
-    VNode
-} from 'preact';
-import {
-    Publisher
-} from "@pjsx/core";
+import {ClassAttributes, Component, ComponentType, FunctionComponent, PreactDOMAttributes, VNode} from 'preact';
+import {Publisher} from "@pjsx/core";
 
 type Defaultize<Props, Defaults> =
 // Distribute over unions
@@ -36,7 +27,7 @@ interface ToggleEvent extends Event {
 
 declare var ToggleEvent: {
     prototype: ToggleEvent;
-    new (type: string, eventInitDict?: ToggleEventInit): ToggleEvent;
+    new(type: string, eventInitDict?: ToggleEventInit): ToggleEvent;
 };
 
 interface ToggleEventInit extends EventInit {
@@ -56,7 +47,7 @@ interface CommandEvent extends Event {
 
 declare var CommandEvent: {
     prototype: CommandEvent;
-    new (type: string, eventInitDict?: CommandEventInit): CommandEvent;
+    new(type: string, eventInitDict?: CommandEventInit): CommandEvent;
 };
 
 interface CommandEventInit extends EventInit {
@@ -82,7 +73,10 @@ export namespace JSXInternal {
             : never;
     }[keyof IntrinsicElements]
         | ComponentType<P>;
-    export interface Element extends VNode<any> {}
+
+    export interface Element extends VNode<any> {
+    }
+
     export type ElementClass = Component<any, any> | FunctionComponent<any>;
 
     export interface ElementAttributesProperty {
@@ -106,13 +100,16 @@ export namespace JSXInternal {
     export type AllCSSProperties = {
         [key: string]: string | number | null | undefined;
     };
+
     export interface CSSProperties extends AllCSSProperties, DOMCSSProperties {
         cssText?: string | null;
     }
 
     export interface SignalLike<T> {
         value: T;
+
         peek(): T;
+
         subscribe(fn: (value: T) => void): () => void;
     }
 
@@ -1638,7 +1635,8 @@ export namespace JSXInternal {
     }
 
     interface AudioHTMLAttributes<T extends EventTarget = HTMLAudioElement>
-        extends MediaHTMLAttributes<T> {}
+        extends MediaHTMLAttributes<T> {
+    }
 
     interface BaseHTMLAttributes<T extends EventTarget = HTMLBaseElement>
         extends HTMLAttributes<T> {
@@ -2267,7 +2265,8 @@ export namespace JSXInternal {
     }
 
     export interface MErrorMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface MFencedMathMLAttributes<T extends EventTarget>
         extends MathMLAttributes<T> {
@@ -2321,7 +2320,8 @@ export namespace JSXInternal {
     }
 
     export interface MNMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface MOMathMLAttributes<T extends EventTarget>
         extends MathMLAttributes<T> {
@@ -2354,16 +2354,20 @@ export namespace JSXInternal {
     }
 
     export interface MPhantomMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface MPrescriptsMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface MRootMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface MRowMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface MSMathMLAttributes<T extends EventTarget>
         extends MathMLAttributes<T> {
@@ -2381,7 +2385,8 @@ export namespace JSXInternal {
     }
 
     export interface MSqrtMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface MStyleMathMLAttributes<T extends EventTarget>
         extends MathMLAttributes<T> {
@@ -2462,7 +2467,8 @@ export namespace JSXInternal {
     }
 
     export interface MTextMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface MTrMathMLAttributes<T extends EventTarget>
         extends MathMLAttributes<T> {
@@ -2486,7 +2492,8 @@ export namespace JSXInternal {
     }
 
     export interface SemanticsMathMLAttributes<T extends EventTarget>
-        extends MathMLAttributes<T> {}
+        extends MathMLAttributes<T> {
+    }
 
     export interface IntrinsicSVGElements {
         svg: SVGAttributes<SVGSVGElement>;
